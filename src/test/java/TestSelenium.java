@@ -2,18 +2,20 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.interactions.Locatable;
 import org.openqa.selenium.support.ui.*;
-import java.util.concurrent.TimeUnit;
 
 public class TestSelenium {
 
     public WebDriver driver;
     public WebDriverWait wait;
     public WebElement element;
+    public By locator;
+    public String expected;
+
 
     @Before
     public void before() {
@@ -24,23 +26,23 @@ public class TestSelenium {
         //driver = new FirefoxDriver();
 
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
     }
 
     @Test
     public void test1() throws InterruptedException {
 
+        wait = new WebDriverWait(driver, 15);
+
         driver.get("http://www.rgs.ru");
         driver.findElement(By.linkText("Меню")).click();
         driver.findElement(By.linkText("ДМС")).click();
 
-        String expected = "ДМС — добровольное медицинское страхование";
-        element = driver.findElement(By.xpath("//h1"));
+        expected = "ДМС — добровольное медицинское страхование";
+        locator = By.xpath("//h1");
+        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        Assert.assertEquals(expected, driver.findElement(locator).getText());
 
-        wait = new WebDriverWait(driver, 3);
-
-        wait.until(ExpectedConditions.visibilityOf(element));
-        Assert.assertEquals(expected, element.getText());
         driver.findElement(By.xpath("//a[contains(text(), 'Отправить заявку')]")).click();
 
         expected = "Заявка на добровольное медицинское страхование";
@@ -59,16 +61,20 @@ public class TestSelenium {
         driver.findElement(By.name("Comment")).sendKeys("Бла-бла-бла");
         driver.findElement(By.xpath("//label[contains(text(), 'согласен')]/../input")).click();
 
-        Assert.assertEquals("Пупкин", driver.findElement(By.name("LastName")).getAttribute("value"));
-        Assert.assertEquals("Василий", driver.findElement(By.name("FirstName")).getAttribute("value"));
-        Assert.assertEquals("Иванович", driver.findElement(By.name("MiddleName")).getAttribute("value"));
-        Assert.assertEquals("Москва", select.getFirstSelectedOption().getText());
-        Assert.assertEquals("+7 (495) 123-00-00", driver.findElement(By.xpath("//label[text()='Телефон']/../input"))
-                .getAttribute("value"));
-        Assert.assertEquals("qwertyqwerty", driver.findElement(By.name("Email")).getAttribute("value"));
-        Assert.assertEquals("10.10.2020", driver.findElement(By.name("ContactDate")).getAttribute("value"));
-        Assert.assertEquals("Бла-бла-бла", driver.findElement(By.name("Comment")).getAttribute("value"));
-        Assert.assertTrue(driver.findElement(By.xpath("//label[contains(text(), 'Я согласен')]/../input")).isSelected());
+        Assertions.assertAll(
+                () -> Assert.assertEquals("Пупкин", driver.findElement(By.name("LastName")).getAttribute("value")),
+                () -> Assert.assertEquals("Василий", driver.findElement(By.name("FirstName")).getAttribute("value")),
+                () -> Assert.assertEquals("Иванович", driver.findElement(By.name("MiddleName")).getAttribute("value")),
+                () -> Assert.assertEquals("Москва", select.getFirstSelectedOption().getText()),
+                () -> Assert.assertEquals("+7 (495) 123-00-00", driver.findElement(By.xpath("//label[text()='Телефон']/../input"))
+                        .getAttribute("value")),
+                () -> Assert.assertEquals("qwertyqwerty", driver.findElement(By.name("Email")).getAttribute("value")),
+                () -> Assert.assertEquals("10.10.2020", driver.findElement(By.name("ContactDate")).getAttribute("value")),
+                () -> Assert.assertEquals("Бла-бла-бла", driver.findElement(By.name("Comment")).getAttribute("value")),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//label[contains(text(), 'Я согласен')]/../input")).isSelected()),
+                () -> Assert.assertEquals("Пупкин", driver.findElement(By.name("LastName")).getAttribute("value")),
+                () -> Assert.assertEquals("Пупкин", driver.findElement(By.name("LastName")).getAttribute("value"))
+        );
 
         driver.findElement(By.xpath("//button[contains(text(), 'Отправить')]")).click();
 
@@ -79,30 +85,43 @@ public class TestSelenium {
     @Test
     public void test2() throws InterruptedException {
 
+        wait = new WebDriverWait(driver, 15);
+
         driver.get("http://www.sberbank.ru/ru/person");
-        driver.findElement(By.xpath("//a[@class='hd-ft-region']")).click();
-        driver.findElement(By.xpath("//a[contains(text(), 'Нижегородская')]")).click();
 
-        wait = new WebDriverWait(driver, 3);
+        locator = By.xpath("//header//a[@class='hd-ft-region']");
+        wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        driver.findElement(locator).click();
 
-        element =  driver.findElement(By.xpath("//a[@class='hd-ft-region']"));
-        wait.until(ExpectedConditions.visibilityOf(element));
-        Assert.assertEquals("Нижегородская область", element.getText());
+        driver.findElement(By.xpath("//h4/..//input")).sendKeys("Нижегородская" + Keys.ENTER);
 
-        ((Locatable) driver.findElement(By.xpath("//footer"))).getCoordinates().inViewPort();
+        try {
+            wait.until(ExpectedConditions.stalenessOf(driver.findElement(locator)));
+        } catch (NoSuchElementException ignored) {
+        }
 
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_fb']"))
-                .isDisplayed());
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_tw']"))
-                .isDisplayed());
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_yt']"))
-                .isDisplayed());
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_ins']"))
-                .isDisplayed());
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_vk']"))
-                .isDisplayed());
-        Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_ok']"))
-                .isDisplayed());
+        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        Assert.assertEquals("Нижегородская область", driver.findElement(locator).getText());
+
+        //((Locatable) driver.findElement(By.xpath("//footer"))).getCoordinates().inViewPort(); //старый скролл
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView()", driver.findElement(By.xpath("//footer")));
+
+        Assertions.assertAll(
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_fb']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_tw']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_yt']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_fb']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_ins']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_vk']"))
+                        .isDisplayed()),
+                () -> Assert.assertTrue(driver.findElement(By.xpath("//footer//span[@class='footer__social_logo footer__social_ok']"))
+                        .isDisplayed())
+        );
     }
 
     @After
